@@ -1,0 +1,47 @@
+{
+  "name": "metrics",
+  "type": "flogo:activity",
+  "ref": "github.com/alexandrev/flogo-components/activity/metrics",
+  "version": "0.0.1",
+  "title": "Execute metrics in Flogo Host",
+  "description": "Returns metrics execution",
+  "author": "Alexandre Vazquez <avazquez@tibco.com>",
+  "homepage": "https://github.com/alexandrev/flogo-components/tree/master/activity/metrics" ,
+  "input":[
+    {
+      "name": "os",
+      "type": "string",
+      "value": "windows"
+    }
+  ],
+  "output": [
+    {
+      "name": "memTotal",
+      "type": "string"
+    },
+    {
+      "name": "memUsed",
+      "type": "string"
+    },
+    {
+      "name": "memPercentage",
+      "type": "Number"
+    },
+    {
+      "name": "cpuNumber",
+      "type": "integer"
+    },
+    {
+      "name": "cpuSpeed",
+      "type": "integer"
+    },
+    {
+      "name": "cpuUsed",
+      "type": "Array"
+    },
+    {
+      "name": "procRunning",
+      "type": "string"
+    }
+  ]
+}

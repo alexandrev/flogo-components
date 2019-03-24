@@ -1,0 +1,51 @@
+{
+  "name": "timert",
+  "type": "flogo:trigger",
+  "ref": "github.com/jvanderl/flogo-components/incubator/trigger/timert",
+  "version": "0.0.1",
+  "title": "Timert",
+  "description": "Simple Timer trigger",
+  "homepage": "https://github.com/jvanderl/flogo-components/tree/master/incubator/trigger/timert",
+  "settings": [
+  ],
+  "output": [
+    {
+      "name": "triggerTime",
+      "type": "string"
+    }
+  ],
+  "handler": {
+    "settings": [
+      {
+        "name": "repeating",
+        "type": "boolean",
+        "required" : true
+      },
+      {
+        "name": "hours",
+        "type": "number",
+        "required" : false
+      },
+      {
+        "name": "minutes",
+        "type": "number",
+        "required" : false
+      },
+      {
+        "name": "seconds",
+        "type": "number",
+        "required" : false
+      },
+      {
+        "name": "startImmediate",
+        "type": "boolean",
+        "required" : false
+      },
+      {
+        "name": "startDate",
+        "type": "string",
+        "required" : false
+      }
+    ]
+  }
+}

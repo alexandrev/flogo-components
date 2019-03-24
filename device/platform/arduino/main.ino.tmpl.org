@@ -1,0 +1,87 @@
+#include <SPI.h>
+{{if .Hcsr04Enabled}}#include <NewPing.h>{{end}}
+
+{{if .MqttEnabled}}#include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+
+WiFiClient wifiClient;
+PubSubClient client(wifiClient);
+
+{{end}}
+
+/*
+{{if .Hcsr04Enabled}}
+// HC-SR04 Ultrasonic Distance Measuring Module Config
+#define TRIGGER_PIN {{setting . "hcsr04:triggerpin"}} // Pin assignment for HC-SR04 sensor module Trigger
+#define ECHO_PIN {{setting . "hcsr04:echopin"}} // Pin assignment for HC-SR04 sensor module Echo
+#define MAX_DISTANCE {{setting . "hcsr04:maxdistance"}} // Max distance (cm) for the module to register
+// Instantiate Ultrasonic Distance Measuring Module
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE); // NewPing setup of pins and maximum distance.
+{{end}}
+*/
+
+void setup() {
+    Serial.begin(115200);
+
+    while (!Serial) {
+        delay(10);
+    }
+
+    {{if .MqttEnabled}}
+    setup_wifi();
+    setup_mqtt();
+    {{end}}
+
+    {{if .Hcsr04Enabled}}
+    setup_hcsr04();
+    {{end}}
+
+	//init triggers
+	{{range .Triggers}}t_{{.}}_init();
+	{{end}}
+
+	//init actions
+	{{range .Actions}}a_{{.}}_init();
+	{{end}}
+}
+
+{{if .MqttEnabled}}
+void init_mqtt_triggers() {
+  //init mqtt triggers
+  {{ range $name, $topic := .MqttTriggers }}t_{{$name}}_init();
+  {{end}}
+}{{end}}
+
+void loop() {
+    {{if .MqttEnabled}}
+    if (!client.connected()) {
+        mqtt_reconnect();
+    }
+
+    // MQTT client loop processing
+    client.loop();
+    {{end}}
+
+	//triggers
+	{{range .Triggers}}t_{{.}}();
+	{{end}}
+}
+
+{{if .MqttEnabled}}
+void callback(char *topic, byte *payload, unsigned int length) {
+
+    Serial.print("Message arrived [");
+    Serial.print(topic);
+    Serial.print("] ");
+    for (int i=0; i < length; i++) {
+        Serial.print((char) payload[i]);
+    }
+    Serial.println();
+
+	//mqtt triggers
+	{{ range $name, $topic := .MqttTriggers }}
+    if (strcmp(topic,"{{$topic}}") == 0) {
+	  t_{{$name}}(topic, payload, length);
+	}{{end}}
+}
+{{end}}

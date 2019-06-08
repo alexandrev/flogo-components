@@ -1,0 +1,48 @@
+{
+  "name": "alexandrev-aggregator",
+  "type": "flogo:activity",
+  "ref": "github.com/alexandrev/flogo-components/activity/aggregate",
+  "version": "0.0.1",
+  "title": "MultiAggregate",
+  "description": "Multi-value Key based Aggregator Activity",
+  "homepage": "https://github.com/alexandrev/flogo-components/tree/master/activity/aggregate",
+  "input":[
+    {
+      "name": "function",
+      "type": "string",
+      "required": true,
+      "allowed" : ["block", "moving", "timeblock"]
+    },
+    {
+      "name": "windowSize",
+      "type": "integer",
+      "required": true
+    },
+    {
+      "name": "value",
+      "type": "complex_object",
+      "value":{      
+        "metadata":"",              
+        "value": "[{ \"operation\":\"count\",\"value\": 0.123}]"
+        }
+    },
+    {
+      "name": "key",
+      "type": "string"
+    }
+  ],
+  "output": [
+    {
+      "name": "result",
+      "type": "complex_object",
+      "value":{      
+        "metadata":"",      
+        "value": "[2,3,4,5,6]"      
+        }
+    },
+    {
+      "name": "report",
+      "type": "boolean"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-package command
+package metrics
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/TIBCOSoftware/flogo-contrib/action/flow/test"
 	"github.com/TIBCOSoftware/flogo-lib/core/activity"
+	"github.com/TIBCOSoftware/flogo-lib/core/data"
 )
 
 var activityMetadata *activity.Metadata
@@ -46,20 +47,15 @@ func TestEval(t *testing.T) {
 
 	act.Eval(tc)
 	//check result attr
-	memTotal := tc.GetOutput("memTotal")
-	memUsed := tc.GetOutput("memUsed")
-	memPercentage := tc.GetOutput("memPercentage")
-	cpuNumber := tc.GetOutput("cpuNumber")
-	cpuSpeed := tc.GetOutput("cpuSpeed")
-	cpuUsed := tc.GetOutput("cpuUsed")
-	procRunning := tc.GetOutput("procRunning")
+	output := tc.GetOutput("output").(*data.ComplexObject).Value.([]map[string]interface{})
+	fmt.Println("memTotal: ", output)
 
-	fmt.Println("memTotal: ", memTotal)
-	fmt.Println("memUsed: ", memUsed)
-	fmt.Println("memPercentage: ", memPercentage)
-	fmt.Println("cpuNumber: ", cpuNumber)
-	fmt.Println("cpuSpeed: ", cpuSpeed)
-	fmt.Println("cpuUsed: ", cpuUsed)
-	fmt.Println("procRunning: ", procRunning)
+	fmt.Println("memTotal: ", output[0]["value"])
+	fmt.Println("memUsed: ", output[1]["value"])
+	fmt.Println("memPercentage: ", output[2]["value"])
+	fmt.Println("cpuNumber: ", output[3]["value"])
+	fmt.Println("cpuSpeed: ", output[4]["value"])
+	fmt.Println("cpuUsed: ", output[5]["value"])
+	fmt.Println("procRunning: ", output[6]["value"])
 
 }

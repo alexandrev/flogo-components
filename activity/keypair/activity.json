@@ -1,0 +1,37 @@
+{
+  "name": "alexandrev-prepaggregator",
+  "type": "flogo:activity",
+  "ref": "github.com/alexandrev/flogo-components/activity/keypair",
+  "version": "0.0.1",
+  "title": "Prepare for Aggregate",
+  "description": "Prepare data for aggregation",
+  "homepage": "https://github.com/alexandrev/flogo-components/tree/master/activity/keypair",
+  "input":[
+    {
+      "name": "values",
+      "type": "complex_object",
+      "value":{      
+        "metadata":"",              
+        "value": "[0.3,0.4,0.5,0.6]"
+        }
+    },
+    {
+      "name": "keys",
+      "type": "complex_object",
+      "value":{      
+        "metadata":"",              
+        "value": "[\"a\",\"a\",\"a\"]"
+        }
+    }
+  ],
+  "output": [
+    {
+      "name": "values",
+      "type": "complex_object",
+      "value":{      
+        "metadata":"",              
+        "value": "[{ \"operation\":\"count\",\"value\": 0.123}]"
+        }
+      }    
+  ]
+}

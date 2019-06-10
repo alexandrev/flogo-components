@@ -1,0 +1,34 @@
+{
+  "name": "alexandrev-prometheuspush",
+  "type": "flogo:activity",
+  "ref": "github.com/alexandrev/flogo-components/activity/prometheuspush",
+  "version": "0.0.1",
+  "title": "Push Prometheus",
+  "description": "Push Metrics to Prometheus",
+  "homepage": "https://github.com/alexandrev/flogo-components/tree/master/activity/prometheuspush",
+  "input":[
+    {"name" : "key",
+      "type": "string"
+    },
+    {"name" : "jobName",
+      "type": "string"
+    },
+    {"name" : "gatewayUrl",
+      "type": "string"
+    },
+    {
+      "name": "metrics",
+      "type": "complex_object",
+      "value":{      
+        "metadata":"",              
+        "value": "[{ \"key\":\"count\",\"value\": 0.123, \"timestamp\": \"timestamp\"}]"
+        }
+      }
+  ],
+  "output": [
+    {
+      "name": "result",
+      "type": "boolean"     
+    }     
+  ]
+}

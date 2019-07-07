@@ -23,7 +23,7 @@ func (ta *TimeBlockAverage) Add(operation []string, value []float64) (bool, []fl
 
 	ta.windowMtx.Lock()
 	ta.values = append(ta.values, value)
-	fmt.Sprintf("Total Values: " + ta.values)
+	fmt.Sprintf("Total Values: %s", ta.values)
 	ta.operations = operation
 	ta.windowMtx.Unlock()
 

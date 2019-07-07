@@ -1,6 +1,7 @@
 package aggregate
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -22,6 +23,7 @@ func (ta *TimeBlockAverage) Add(operation []string, value []float64) (bool, []fl
 
 	ta.windowMtx.Lock()
 	ta.values = append(ta.values, value)
+	fmt.Sprintf("Total Values: " + ta.values)
 	ta.operations = operation
 	ta.windowMtx.Unlock()
 
@@ -40,9 +42,10 @@ func (ta *TimeBlockAverage) average() []float64 {
 	var total = make([]float64, len(ta.values[0]))
 
 	count := len(ta.values)
-
+	fmt.Sprintf("Total Value Length: %d.\n", count)
 	for i := 0; i < count; i++ {
 
+		fmt.Sprintf("Value Length: %d.\n", ta.values[i])
 		for j := 0; j < len(ta.values[i]); j++ {
 			if ta.operations[j] == "min" {
 				if total[j] > ta.values[i][j] {

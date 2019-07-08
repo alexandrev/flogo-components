@@ -7,7 +7,8 @@ import (
 )
 
 type TimeBlockAverage struct {
-	windowSize   time.Duration
+	startTime    int64
+	windowSize   int64
 	values       [][]float64
 	operations   []string
 	windowMtx    *sync.Mutex
@@ -28,7 +29,6 @@ func (ta *TimeBlockAverage) Add(operation []string, value []float64) (bool, []fl
 	ta.windowMtx.Unlock()
 
 	if ta.startWindow() {
-		time.Sleep(ta.windowSize * time.Millisecond)
 		return true, ta.average()
 	} else {
 		return false, make([]float64, ta.windowSize)
@@ -77,21 +77,21 @@ func (ta *TimeBlockAverage) startWindow() bool {
 
 	ta.startMtx.RLock()
 
-	if ta.windowActive {
-		ta.startMtx.RUnlock()
-		return false
+	if ta.startTime == -1 {
+		ta.startTime = time.Now().Unix()
 	}
-	ta.startMtx.RUnlock()
 
-	ta.startMtx.Lock()
-	defer ta.startMtx.Unlock()
+	currentTime := time.Now().Unix()
 
-	if !ta.windowActive {
-		ta.windowActive = true
+	if (currentTime - ta.startTime) > ta.windowSize {
+		ta.startTime = -1
+		ta.startMtx.RUnlock()
 		return true
 	}
 
+	ta.startMtx.RUnlock()
 	return false
+
 }
 
 func (ta *TimeBlockAverage) resetWindow() {
@@ -105,7 +105,7 @@ func (ta *TimeBlockAverage) resetWindow() {
 
 func NewTimeBlockAverage(windowSize int) Aggregator {
 	return &TimeBlockAverage{
-		windowSize: time.Duration(windowSize),
+		windowSize: int64(windowSize),
 		windowMtx:  &sync.Mutex{},
 		startMtx:   &sync.RWMutex{},
 	}

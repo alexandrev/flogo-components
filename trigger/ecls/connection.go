@@ -44,7 +44,7 @@ func NewWebSocketConnection(wsUrl string) (*WebSocketConnection, error) {
 	tlsConfig := &tls.Config{InsecureSkipVerify: true}
 	dialer := websocket.Dialer{TLSClientConfig: tlsConfig, EnableCompression: true}
 
-	c, resp, err := dialer.Dial(u.String(), nil)
+	c, _, err := dialer.Dial(u.String(), nil)
 	if err != nil {
 		return nil, fmt.Errorf("handshake failed with message: %v", err)
 	}

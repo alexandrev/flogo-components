@@ -1,4 +1,4 @@
-module github.com/mmussett/flogo-components/trigger/ecls
+module github.com/alexandrev/flogo-components/trigger/ecls
 
 require (
 	github.com/gorilla/websocket v1.4.1

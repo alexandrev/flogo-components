@@ -1,6 +1,7 @@
 package keypair
 
 import (
+	"fmt"
 	"github.com/project-flogo/core/data/coerce"
 )
 
@@ -16,11 +17,10 @@ type Output struct {
 	Values []map[string]interface{} `md:"values"`
 }
 
-
-
 func (i *Input) ToMap() map[string]interface{} {
+	fmt.Printf("A02 %s", i.Keys)
 	return map[string]interface{}{
-		"keys": i.Keys,
+		"keys":   i.Keys,
 		"values": i.Values,
 	}
 }
@@ -28,7 +28,9 @@ func (i *Input) ToMap() map[string]interface{} {
 func (i *Input) FromMap(values map[string]interface{}) error {
 
 	var err error
+	fmt.Printf("A1 %s", values["keys"])
 	i.Keys, err = coerce.ToArray(values["keys"])
+	fmt.Printf("A2 %s", i.Keys)
 	if err != nil {
 		return err
 	}

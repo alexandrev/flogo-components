@@ -1,40 +1,48 @@
 package keypair
 
 import (
-	"github.com/TIBCOSoftware/flogo-lib/core/activity"
-	"github.com/TIBCOSoftware/flogo-lib/core/data"
-	"github.com/TIBCOSoftware/flogo-lib/logger"
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/data/metadata"
 )
 
-// activityLogger is the default logger for the Aggregate Activity
-var activityLogger = logger.GetLogger("activity-alexandrev-keypair")
-
 func init() {
-	activityLogger.SetLogLevel(logger.InfoLevel)
+	_ = activity.Register(&Activity{}, New)
+
 }
 
-type KeyPair struct {
+var activityMd = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
+
+type Activity struct {
 	metadata *activity.Metadata
 }
 
 // NewActivity creates a new AppActivity
-func NewActivity(metadata *activity.Metadata) activity.Activity {
-	return &KeyPair{metadata: metadata}
+func New(ctx activity.InitContext) (activity.Activity, error) {
+
+	s := &Settings{}
+	err := metadata.MapToStruct(ctx.Settings(), s, true)
+	if err != nil {
+		return nil, err
+	}
+
+	act := &Activity{}
+
+	return act, nil
 }
 
 // Metadata returns the activity's metadata
-func (a *KeyPair) Metadata() *activity.Metadata {
-	return a.metadata
+func (a *Activity) Metadata() *activity.Metadata {
+	return activityMd
 }
 
 // Eval implements api.Activity.Eval - Aggregates the Message
-func (a *KeyPair) Eval(context activity.Context) (done bool, err error) {
+func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
-	activityLogger.Debugf("Input Keys [%s]", context.GetInput("keys").(*data.ComplexObject).Value)
-	activityLogger.Debugf("Input Values [%f]", context.GetInput("values").(*data.ComplexObject).Value)
+	context.Logger().Debugf("Input Keys [%s]", context.GetInput("keys").([]interface{}))
+	context.Logger().Debugf("Input Values [%f]", context.GetInput("values").([]interface{}))
 
-	inputKeys := context.GetInput("keys").(*data.ComplexObject).Value.([]interface{})
-	inputValues := context.GetInput("values").(*data.ComplexObject).Value.([]interface{})
+	inputKeys := context.GetInput("keys").([]interface{})
+	inputValues := context.GetInput("values").([]interface{})
 
 	result := make([]map[string]interface{}, len(inputValues))
 	for i := 0; i < len(inputValues); i++ {
@@ -43,8 +51,8 @@ func (a *KeyPair) Eval(context activity.Context) (done bool, err error) {
 		result[i]["value"] = inputValues[i].(float64)
 	}
 
-	context.SetOutput("values", &data.ComplexObject{Metadata: "", Value: result})
-	activityLogger.Debugf("Output Values [%s]", result)	
+	context.SetOutput("values", result)
+	context.Logger().Debugf("Output Values [%s]", result)
 
 	return true, nil
 }

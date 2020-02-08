@@ -2,32 +2,24 @@ package keypair
 
 import (
 	"fmt"
-	"github.com/TIBCOSoftware/flogo-contrib/action/flow/test"
-	"github.com/TIBCOSoftware/flogo-lib/core/activity"
-	"github.com/TIBCOSoftware/flogo-lib/core/data"
-	"io/ioutil"
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/support/test"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
-var activityMetadata *activity.Metadata
+func TestRegister(t *testing.T) {
 
-func getActivityMetadata() *activity.Metadata {
+	ref := activity.GetRef(&Activity{})
+	act := activity.Get(ref)
 
-	if activityMetadata == nil {
-		jsonMetadataBytes, err := ioutil.ReadFile("activity.json")
-		if err != nil {
-			panic("No Json Metadata found for activity.json path")
-		}
-
-		activityMetadata = activity.NewMetadata(string(jsonMetadataBytes))
-	}
-
-	return activityMetadata
+	assert.NotNil(t, act)
 }
 
 func TestCreate(t *testing.T) {
 
-	act := NewActivity(getActivityMetadata())
+	ref := activity.GetRef(&Activity{})
+	act := activity.Get(ref)
 
 	if act == nil {
 		t.Error("Activity Not Created")
@@ -38,20 +30,21 @@ func TestCreate(t *testing.T) {
 
 func TestEval(t *testing.T) {
 
-	act := NewActivity(getActivityMetadata())
-	tc := test.NewTestActivityContext(getActivityMetadata())
+	ref := activity.GetRef(&Activity{})
+	act := activity.Get(ref)
+	tc := test.NewActivityContext(act.Metadata())
 
 	thisMap := make(map[string]interface{})
 	thisMap["operation"] = "avg"
 	thisMap["value"] = 2
 	//setup attrs
 
-	tc.SetInput("keys", &data.ComplexObject{Metadata: "", Value: []interface{}{"a", "b", "c"}})
-	tc.SetInput("values", &data.ComplexObject{Metadata: "", Value: []interface{}{0.01, 0.02, 0.03}})
+	tc.SetInput("keys", []interface{}{"a", "b", "c"})
+	tc.SetInput("values", []interface{}{0.01, 0.02, 0.03})
 
 	act.Eval(tc)
 
-	result := tc.GetOutput("values").(*data.ComplexObject).Value.([]map[string]interface{})
+	result := tc.GetOutput("values").([]map[string]interface{})
 	fmt.Printf("%s", result)
 	if result[0]["operation"] != "a" {
 		t.Errorf("Result is %s instead of a", result[0]["operacion"])

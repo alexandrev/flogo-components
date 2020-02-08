@@ -19,7 +19,7 @@
   "output": [
     {
       "name": "values",
-      "type": "array"
+      "type": "object"
       
       }    
   ]

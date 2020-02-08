@@ -12,17 +12,6 @@ func init() {
 
 var activityMd = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
 
-type Settings struct {
-}
-
-type Input struct {
-	keys   []interface{} `md:"keys"`
-	values []interface{} `md:"values"`
-}
-
-type Output struct {
-	result []interface{}
-}
 
 type Activity struct {
 	metadata *activity.Metadata
@@ -50,21 +39,34 @@ func (a *Activity) Metadata() *activity.Metadata {
 // Eval implements api.Activity.Eval - Aggregates the Message
 func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
-	context.Logger().Debugf("Input Keys [%s]", context.GetInput("keys").([]interface{}))
-	context.Logger().Debugf("Input Values [%f]", context.GetInput("values").([]interface{}))
+	input := &Input{}
+	err = context.GetInputObject(input)
 
-	inputKeys := context.GetInput("keys").([]interface{})
-	inputValues := context.GetInput("values").([]interface{})
 
-	result := make([]map[string]interface{}, len(inputValues))
-	for i := 0; i < len(inputValues); i++ {
-		result[i] = make(map[string]interface{})
-		result[i]["operation"] = inputKeys[i].(string)
-		result[i]["value"] = inputValues[i].(float64)
+	if err != nil {
+		return false, err
 	}
 
-	context.SetOutput("values", result)
+	context.Logger().Debugf("Input Keys [%s]", input.Keys)
+	context.Logger().Debugf("Input Values [%f]", input.Values)
+
+
+	result := make([]map[string]interface{}, len(input.Values))
+	for i := 0; i < len(input.Values); i++ {
+		result[i] = make(map[string]interface{})
+		result[i]["operation"] = input.Keys[i].(string)
+		result[i]["value"] = input.Values[i].(float64)
+	}
+
 	context.Logger().Debugf("Output Values [%s]", result)
+
+	output := &Output{}
+	output.Values  =  result;
+
+	err = context.SetOutputObject(output)
+	if err != nil {
+		return false, err
+	}
 
 	return true, nil
 }

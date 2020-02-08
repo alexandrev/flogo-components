@@ -16,12 +16,13 @@ type Settings struct {
 }
 
 type Input struct {
-	
+	keys   []interface{} `md:"keys"`
+	values []interface{} `md:"values"`
 }
 
 type Output struct {
+	result []interface{}
 }
-
 
 type Activity struct {
 	metadata *activity.Metadata

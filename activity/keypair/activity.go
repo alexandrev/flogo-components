@@ -10,7 +10,10 @@ func init() {
 
 }
 
-var activityMd = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
+var activityMd = activity.ToMetadata(&Settings{})
+
+type Settings struct {
+}
 
 type Activity struct {
 	metadata *activity.Metadata

@@ -17,6 +17,7 @@ type Output struct {
 	Values []map[string]interface{} `md:"values"`
 }
 
+// ToMap converts the struct Input into a map
 func (i *Input) ToMap() map[string]interface{} {
 	fmt.Printf("A02 %s", i.Keys)
 	return map[string]interface{}{
@@ -25,6 +26,7 @@ func (i *Input) ToMap() map[string]interface{} {
 	}
 }
 
+// FromMap converts the values from a map into the struct Input
 func (i *Input) FromMap(values map[string]interface{}) error {
 
 	var err error
@@ -41,12 +43,14 @@ func (i *Input) FromMap(values map[string]interface{}) error {
 	return nil
 }
 
+// ToMap converts the struct Input into a map
 func (o *Output) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"values": o.Values,
 	}
 }
 
+// FromMap converts the values from a map into the struct Input
 func (o *Output) FromMap(values map[string]interface{}) error {
 
 	o.Values = values["values"].([]map[string]interface{})

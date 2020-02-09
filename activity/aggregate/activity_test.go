@@ -2,33 +2,15 @@ package aggregate
 
 import (
 	"fmt"
-	"io/ioutil"
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/support/test"
 	"testing"
-
-	"github.com/TIBCOSoftware/flogo-contrib/action/flow/test"
-	"github.com/TIBCOSoftware/flogo-lib/core/activity"
-	"github.com/TIBCOSoftware/flogo-lib/core/data"
 )
-
-var activityMetadata *activity.Metadata
-
-func getActivityMetadata() *activity.Metadata {
-
-	if activityMetadata == nil {
-		jsonMetadataBytes, err := ioutil.ReadFile("activity.json")
-		if err != nil {
-			panic("No Json Metadata found for activity.json path")
-		}
-
-		activityMetadata = activity.NewMetadata(string(jsonMetadataBytes))
-	}
-
-	return activityMetadata
-}
 
 func TestCreate(t *testing.T) {
 
-	act := NewActivity(getActivityMetadata())
+	ref := activity.GetRef(&Activity{})
+	act := activity.Get(ref)
 
 	if act == nil {
 		t.Error("Activity Not Created")
@@ -38,10 +20,11 @@ func TestCreate(t *testing.T) {
 }
 
 func TestEval(t *testing.T) {
-
-	act := NewActivity(getActivityMetadata())
-	tc := test.NewTestActivityContext(getActivityMetadata())
-
+	
+	iCtx := test.NewActivityInitContext(nil, nil)
+	act, _ := New(iCtx)
+	tc := test.NewActivityContext(act.Metadata())
+	
 	thisMap := make([]interface{}, 1)
 	tmpThisMap := make(map[string]interface{})
 	tmpThisMap["operation"] = "avg"
@@ -50,13 +33,13 @@ func TestEval(t *testing.T) {
 	//setup attrs
 	tc.SetInput(ivFunction, "moving")
 	tc.SetInput(ivWindowSize, 2)
-	tc.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMap})
+	tc.SetInput(ivValue, thisMap)
 	tc.SetInput(ivDataKey, "1")
 
 	act.Eval(tc)
 
 	report := tc.GetOutput(ovReport).(bool)
-	result := tc.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result := tc.GetOutput(ovResult).([]float64)
 
 	if result[0] != 0.0 {
 		t.Errorf("Result is %f instead of 0", result[0])
@@ -67,7 +50,7 @@ func TestEval(t *testing.T) {
 
 	fmt.Printf("test %v, %v", report, result)
 
-	tc2 := test.NewTestActivityContext(getActivityMetadata())
+	tc2 := test.NewActivityContext(act.Metadata())
 
 	thisMap2 := make([]interface{}, 1)
 	tmpThisMap2 := make(map[string]interface{})
@@ -77,13 +60,13 @@ func TestEval(t *testing.T) {
 	//setup attrs
 	tc2.SetInput(ivFunction, "moving")
 	tc2.SetInput(ivWindowSize, 5)
-	tc2.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMap2})
+	tc2.SetInput(ivValue, thisMap2)
 	tc2.SetInput(ivDataKey, "1")
 
 	act.Eval(tc2)
 
 	report = tc2.GetOutput(ovReport).(bool)
-	result = tc2.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result = tc2.GetOutput(ovResult).([]float64)
 
 	if result[0] != 2.5 {
 		t.Errorf("Result is %f instead of 2.5", result[0])
@@ -95,7 +78,7 @@ func TestEval(t *testing.T) {
 
 	fmt.Printf("test %v, %v", report, result)
 
-	tc3 := test.NewTestActivityContext(getActivityMetadata())
+	tc3 := test.NewActivityContext(act.Metadata())
 	thisMap3 := make([]interface{}, 1)
 	tmpThisMap3 := make(map[string]interface{})
 	tmpThisMap3["operation"] = "avg"
@@ -104,13 +87,13 @@ func TestEval(t *testing.T) {
 	//setup attrs
 	tc3.SetInput(ivFunction, "moving")
 	tc3.SetInput(ivWindowSize, 5)
-	tc3.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMap3})
+	tc3.SetInput(ivValue, thisMap3)
 	tc3.SetInput(ivDataKey, "1")
 
 	act.Eval(tc3)
 
 	report = tc3.GetOutput(ovReport).(bool)
-	result = tc3.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result = tc3.GetOutput(ovResult).([]float64)
 
 	if result[0] != 3.0 {
 		t.Errorf("Result is %f instead of 3.0", result[0])
@@ -126,8 +109,10 @@ func TestEval(t *testing.T) {
 
 func TestResetEval(t *testing.T) {
 
-	act := NewActivity(getActivityMetadata())
-	tc := test.NewTestActivityContext(getActivityMetadata())
+	iCtx := test.NewActivityInitContext(nil, nil)
+	act, _ := New(iCtx)
+	tc := test.NewActivityContext(act.Metadata())
+	
 	thisMap := make([]interface{}, 1)
 	tmpThisMap := make(map[string]interface{})
 	tmpThisMap["operation"] = "avg"
@@ -137,12 +122,12 @@ func TestResetEval(t *testing.T) {
 
 	tc.SetInput(ivFunction, "block")
 	tc.SetInput(ivWindowSize, 2)
-	tc.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMap})
+	tc.SetInput(ivValue, thisMap)
 
 	act.Eval(tc)
 
 	report := tc.GetOutput(ovReport).(bool)
-	result := tc.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result := tc.GetOutput(ovResult).([]float64)
 
 	if result[0] != 0.0 {
 		t.Errorf("Result is %f instead of 0", result[0])
@@ -153,7 +138,7 @@ func TestResetEval(t *testing.T) {
 
 	fmt.Printf("test %v, %v", report, result)
 
-	tc2 := test.NewTestActivityContext(getActivityMetadata())
+	tc2 := test.NewActivityContext(act.Metadata())
 	thisMap2 := make([]interface{}, 1)
 	tmpThisMap2 := make(map[string]interface{})
 	tmpThisMap2["operation"] = "avg"
@@ -162,12 +147,12 @@ func TestResetEval(t *testing.T) {
 	//setup attrs
 	tc2.SetInput(ivFunction, "block")
 	tc2.SetInput(ivWindowSize, 2)
-	tc2.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMap2})
+	tc2.SetInput(ivValue, thisMap2)
 
 	act.Eval(tc2)
 
 	report = tc2.GetOutput(ovReport).(bool)
-	result = tc2.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result = tc2.GetOutput(ovResult).([]float64)
 
 	if result[0] != 2.5 {
 		t.Errorf("Result is %f instead of 2.5", result[0])
@@ -179,7 +164,7 @@ func TestResetEval(t *testing.T) {
 
 	fmt.Printf("test %v, %v", report, result)
 
-	tc3 := test.NewTestActivityContext(getActivityMetadata())
+	tc3 := test.NewActivityContext(act.Metadata())
 	thisMap3 := make([]interface{}, 1)
 	tmpThisMap3 := make(map[string]interface{})
 	tmpThisMap3["operation"] = "avg"
@@ -188,12 +173,12 @@ func TestResetEval(t *testing.T) {
 	//setup attrs
 	tc3.SetInput(ivFunction, "block")
 	tc3.SetInput(ivWindowSize, 2)
-	tc3.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMap3})
+	tc3.SetInput(ivValue, thisMap3)
 
 	act.Eval(tc3)
 
 	report = tc3.GetOutput(ovReport).(bool)
-	result = tc3.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result = tc3.GetOutput(ovResult).([]float64)
 
 	if report {
 		t.Error("Window should not report after third value")
@@ -209,8 +194,9 @@ func TestResetEval(t *testing.T) {
 
 func TestVaryingData(t *testing.T) {
 
-	act := NewActivity(getActivityMetadata())
-	tc := test.NewTestActivityContext(getActivityMetadata())
+	iCtx := test.NewActivityInitContext(nil, nil)
+	act, _ := New(iCtx)
+	tc := test.NewActivityContext(act.Metadata())
 
 	//setup attrs
 
@@ -221,13 +207,13 @@ func TestVaryingData(t *testing.T) {
 	thisMap[0] = tmpThisMap
 	tc.SetInput(ivFunction, "block")
 	tc.SetInput(ivWindowSize, 2)
-	tc.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMap})
+	tc.SetInput(ivValue, thisMap)
 	tc.SetInput(ivDataKey, "1")
 
 	act.Eval(tc)
 
 	report := tc.GetOutput(ovReport).(bool)
-	result := tc.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result := tc.GetOutput(ovResult).([]float64)
 
 	if result[0] != 0.0 {
 		t.Errorf("Result is %f instead of 0", result[0])
@@ -238,7 +224,7 @@ func TestVaryingData(t *testing.T) {
 
 	fmt.Printf("test %v, %v", report, result)
 
-	tca := test.NewTestActivityContext(getActivityMetadata())
+	tca := test.NewActivityContext(act.Metadata())
 	thisMapa := make([]interface{}, 1)
 	tmpThisMapa := make(map[string]interface{})
 	tmpThisMapa["operation"] = "avg"
@@ -247,13 +233,13 @@ func TestVaryingData(t *testing.T) {
 	//setup attrs
 	tca.SetInput(ivFunction, "block")
 	tca.SetInput(ivWindowSize, 2)
-	tca.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMapa})
+	tca.SetInput(ivValue, thisMapa)
 	tca.SetInput(ivDataKey, "2")
 
 	act.Eval(tca)
 
 	report = tca.GetOutput(ovReport).(bool)
-	result = tca.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result = tca.GetOutput(ovResult).([]float64)
 
 	if result[0] != 0.0 {
 		t.Errorf("Result is %f instead of 0", result[0])
@@ -264,7 +250,7 @@ func TestVaryingData(t *testing.T) {
 
 	fmt.Printf("test %v, %v", report, result)
 
-	tc2 := test.NewTestActivityContext(getActivityMetadata())
+	tc2 := test.NewActivityContext(act.Metadata())
 	thisMap2 := make([]interface{}, 1)
 	tmpThisMap2 := make(map[string]interface{})
 	tmpThisMap2["operation"] = "avg"
@@ -273,13 +259,13 @@ func TestVaryingData(t *testing.T) {
 	//setup attrs
 	tc2.SetInput(ivFunction, "block")
 	tc2.SetInput(ivWindowSize, 2)
-	tc2.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMap2})
+	tc2.SetInput(ivValue, thisMap2)
 	tc2.SetInput(ivDataKey, "1")
 
 	act.Eval(tc2)
 
 	report = tc2.GetOutput(ovReport).(bool)
-	result = tc2.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result = tc2.GetOutput(ovResult).([]float64)
 
 	if result[0] != 2.5 {
 		t.Errorf("Result is %f instead of 2.5", result[0])
@@ -291,7 +277,7 @@ func TestVaryingData(t *testing.T) {
 
 	fmt.Printf("test %v, %v", report, result)
 
-	tc3 := test.NewTestActivityContext(getActivityMetadata())
+	tc3 := test.NewActivityContext(act.Metadata())
 	thisMap3 := make([]interface{}, 1)
 	tmpThisMap3 := make(map[string]interface{})
 	tmpThisMap3["operation"] = "avg"
@@ -300,13 +286,13 @@ func TestVaryingData(t *testing.T) {
 	//setup attrs
 	tc3.SetInput(ivFunction, "block")
 	tc3.SetInput(ivWindowSize, 2)
-	tc3.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMap3})
+	tc3.SetInput(ivValue, thisMap3)
 	tc3.SetInput(ivDataKey, "1")
 
 	act.Eval(tc3)
 
 	report = tc3.GetOutput(ovReport).(bool)
-	result = tc3.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result = tc3.GetOutput(ovResult).([]float64)
 
 	if report {
 		t.Error("Window should not report after third value for key 1")
@@ -318,7 +304,7 @@ func TestVaryingData(t *testing.T) {
 
 	fmt.Printf("test %v, %v", report, result)
 
-	tca2 := test.NewTestActivityContext(getActivityMetadata())
+	tca2 := test.NewActivityContext(act.Metadata())
 	thisMapa2 := make([]interface{}, 1)
 	tmpThisMapa2 := make(map[string]interface{})
 	tmpThisMapa2["operation"] = "avg"
@@ -327,13 +313,13 @@ func TestVaryingData(t *testing.T) {
 	//setup attrs
 	tca2.SetInput(ivFunction, "block")
 	tca2.SetInput(ivWindowSize, 2)
-	tca2.SetInput(ivValue, &data.ComplexObject{Metadata: "", Value: thisMapa2})
+	tca2.SetInput(ivValue, thisMapa2)
 	tca2.SetInput(ivDataKey, "2")
 
 	act.Eval(tca2)
 
 	report = tca2.GetOutput(ovReport).(bool)
-	result = tca2.GetOutput(ovResult).(*data.ComplexObject).Value.([]float64)
+	result = tca2.GetOutput(ovResult).([]float64)
 
 	if result[0] != 2.5 {
 		t.Errorf("Result is %f instead of 2.5", result[0])

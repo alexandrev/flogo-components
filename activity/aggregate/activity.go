@@ -2,14 +2,10 @@ package aggregate
 
 import (
 	"errors"
-	"github.com/TIBCOSoftware/flogo-lib/core/activity"
-	"github.com/TIBCOSoftware/flogo-lib/core/data"
-	"github.com/TIBCOSoftware/flogo-lib/logger"
+	"github.com/project-flogo/core/activity"
+	"github.com/project-flogo/core/data/metadata"
 	"sync"
 )
-
-// activityLogger is the default logger for the Aggregate Activity
-var activityLogger = logger.GetLogger("activity-alexandrev-aggregate")
 
 const (
 	ivFunction   = "function"
@@ -22,13 +18,16 @@ const (
 )
 
 func init() {
-	activityLogger.SetLogLevel(logger.InfoLevel)
+	_ = activity.Register(&Activity{}, New)
+
 }
+
+var activityMd = activity.ToMetadata(&Settings{}, &Input{}, &Output{})
 
 // AggregationActivity is an Activity that is used to Aggregate a message to the console
 // inputs : {function, windowSize, autoRest, value}
 // outputs: {result, report}
-type AggregationActivity struct {
+type Activity struct {
 	metadata *activity.Metadata
 	mutex    *sync.RWMutex
 
@@ -37,21 +36,34 @@ type AggregationActivity struct {
 }
 
 // NewActivity creates a new AppActivity
-func NewActivity(metadata *activity.Metadata) activity.Activity {
-	return &AggregationActivity{metadata: metadata, aggregators: make(map[string]Aggregator), mutex: &sync.RWMutex{}}
+func New(ctx activity.InitContext) (activity.Activity, error) {
+
+	s := &Settings{}
+	err := metadata.MapToStruct(ctx.Settings(), s, true)
+	if err != nil {
+		return nil, err
+	}
+
+	act := &Activity{aggregators: make(map[string]Aggregator), mutex: &sync.RWMutex{}}
+
+	return act, nil
 }
 
 // Metadata returns the activity's metadata
-func (a *AggregationActivity) Metadata() *activity.Metadata {
-	return a.metadata
+func (a *Activity) Metadata() *activity.Metadata {
+	return activityMd
 }
 
 // Eval implements api.Activity.Eval - Aggregates the Message
-func (a *AggregationActivity) Eval(context activity.Context) (done bool, err error) {
+func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
-	dataKey := context.GetInput(ivDataKey).(string)
+	input := &Input{}
+	err = context.GetInputObject(input)
+
+	dataKey := input.Key
 
 	aggregatorKey := context.ActivityHost().Name() + ":" + context.Name() + ":" + dataKey
+
 
 	a.mutex.RLock()
 	//get aggregator for activity, assumes flow & task names are unique
@@ -69,8 +81,9 @@ func (a *AggregationActivity) Eval(context activity.Context) (done bool, err err
 		aggr, ok = a.aggregators[aggregatorKey]
 
 		if !ok {
-			windowSize, _ := context.GetInput(ivWindowSize).(int)
-			aggrName, _ := context.GetInput(ivFunction).(string)
+			windowSize := input.WindowSize
+
+			aggrName := input.Function
 
 			factory := GetFactory(aggrName)
 
@@ -81,13 +94,15 @@ func (a *AggregationActivity) Eval(context activity.Context) (done bool, err err
 			aggr = factory(windowSize)
 			a.aggregators[aggregatorKey] = aggr
 
-			activityLogger.Debug("Aggregator created for ", aggregatorKey)
+			context.Logger().Debug("Aggregator created for ", aggregatorKey)
 		}
 
 		a.mutex.Unlock()
+
 	}
 
-	inputValues := context.GetInput(ivValue).(*data.ComplexObject).Value.([]interface{})
+	inputValues := input.Value
+
 
 	values := make([]float64, len(inputValues))
 	operations := make([]string, len(inputValues))
@@ -103,8 +118,15 @@ func (a *AggregationActivity) Eval(context activity.Context) (done bool, err err
 
 	report, result := aggr.Add(operations, values)
 
-	context.SetOutput(ovReport, report)
-	context.SetOutput(ovResult, &data.ComplexObject{Metadata: "", Value: result})
-	activityLogger.Debug("Aggregated values returned: %f", result)
+	output := &Output{}
+	output.Result = result
+	output.Report = report
+
+	err = context.SetOutputObject(output)
+	if err != nil {
+		return false, err
+	}
+
+	context.Logger().Debug("Aggregated values returned: %f", result)
 	return true, nil
 }

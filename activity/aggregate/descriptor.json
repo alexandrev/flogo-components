@@ -20,11 +20,7 @@
     },
     {
       "name": "value",
-      "type": "complex_object",
-      "value":{      
-        "metadata":"",              
-        "value": "[{ \"operation\":\"count\",\"value\": 0.123}]"
-        }
+      "type": "object"      
     },
     {
       "name": "key",
@@ -34,11 +30,7 @@
   "output": [
     {
       "name": "result",
-      "type": "complex_object",
-      "value":{      
-        "metadata":"",      
-        "value": "[2,3,4,5,6]"      
-        }
+      "type": "object"
     },
     {
       "name": "report",

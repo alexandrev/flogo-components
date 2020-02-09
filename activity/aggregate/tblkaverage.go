@@ -24,7 +24,7 @@ func (ta *TimeBlockAverage) Add(operation []string, value []float64) (bool, []fl
 
 	ta.windowMtx.Lock()
 	ta.values = append(ta.values, value)
-	fmt.Sprintf("Total Values: %s", ta.values)
+
 	ta.operations = operation
 	ta.windowMtx.Unlock()
 
@@ -45,7 +45,6 @@ func (ta *TimeBlockAverage) average() []float64 {
 	fmt.Sprintf("Total Value Length: %d.\n", count)
 	for i := 0; i < count; i++ {
 
-		fmt.Sprintf("Value Length: %d.\n", ta.values[i])
 		for j := 0; j < len(ta.values[i]); j++ {
 			if ta.operations[j] == "min" {
 				if total[j] > ta.values[i][j] {

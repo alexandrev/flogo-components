@@ -24,7 +24,7 @@ func (ba *BlockAverage) Add(operation []string, value []float64) (bool, []float6
 
 	ba.nextValueIdx = ba.nextValueIdx + 1
 
-	activityLogger.Debugf("Next value (%d / %d ) : [%f] ", ba.nextValueIdx, ba.windowSize, ba.values)
+	//activityLogger.Debugf("Next value (%d / %d ) : [%f] ", ba.nextValueIdx, ba.windowSize, ba.values)
 	if ba.nextValueIdx >= ba.windowSize {
 		return true, ba.average()
 	}

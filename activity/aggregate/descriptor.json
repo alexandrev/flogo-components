@@ -20,7 +20,7 @@
     },
     {
       "name": "value",
-      "type": "object"      
+      "type": "array"      
     },
     {
       "name": "key",
@@ -30,7 +30,7 @@
   "output": [
     {
       "name": "result",
-      "type": "object"
+      "type": "array"
     },
     {
       "name": "report",

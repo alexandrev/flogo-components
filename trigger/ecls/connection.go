@@ -6,7 +6,7 @@ import (
 
 	"net/url"
 	"strings"
-
+	"net/http"
 	"github.com/gorilla/websocket"
 	"github.com/prometheus/common/log"
 )
@@ -42,7 +42,7 @@ func NewWebSocketConnection(wsUrl string) (*WebSocketConnection, error) {
 
 	// Connect to Web Socket
 	tlsConfig := &tls.Config{InsecureSkipVerify: true}
-	dialer := websocket.Dialer{TLSClientConfig: tlsConfig, EnableCompression: true}
+	dialer := websocket.Dialer{TLSClientConfig: tlsConfig, Proxy: http.ProxyFromEnvironment, EnableCompression: true}
 
 	c, _, err := dialer.Dial(u.String(), nil)
 	if err != nil {

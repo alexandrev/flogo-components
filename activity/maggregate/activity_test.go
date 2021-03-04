@@ -45,7 +45,7 @@ func TestResetEval(t *testing.T) {
 	report := tc.GetOutput(ovReport).(bool)
 	result := tc.GetOutput(ovResult).([]interface{})
 
-	if result[0].(float64) != 0.0 {
+	if result[0].([]float64)[0] != 0.0 {
 		t.Errorf("Result is %f instead of 0", result[0])
 	}
 	if report {
@@ -71,7 +71,7 @@ func TestResetEval(t *testing.T) {
 	report = tc2.GetOutput(ovReport).(bool)
 	result = tc2.GetOutput(ovResult).([]interface{})
 
-	if result[0].(float64) != 2 {
+	if result[0].([]float64)[0] != 2 {
 		t.Errorf("Result is %f instead of 2", result[0])
 	}
 

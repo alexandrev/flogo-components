@@ -133,6 +133,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		output.Report = report
 	} else if operation == "get" {
 		report, result, items = aggr.Get()
+		delete(a.aggregators, aggregatorKey)
 		output.Report = report
 	}
 

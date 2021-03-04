@@ -114,11 +114,13 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 
 	inputValues := input.Value
 	values := make([]float64, len(inputValues))
+	items := make([]string, len(inputValues))
 	operations := make([]string, len(inputValues))
 	for i := 0; i < len(values); i++ {
 		inputValuesIndex := inputValues[i].(map[string]interface{})
 		operations[i] = inputValuesIndex["operation"].(string)
 		values[i], ok = inputValuesIndex["value"].(float64)
+		items[i], ok = inputValuesIndex["items"].(string)
 		if !ok {
 			values[i] = float64(inputValuesIndex["value"].(int))
 		}
@@ -127,17 +129,15 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 	var result []float64
 	var report bool
 	if operation == "set" {
-		report, result = aggr.Add(operations, values)
+		report, result = aggr.Add(operations, items, values)
 		output.Report = report
 	} else if operation == "get" {
-		report, result = aggr.Get()
+		report, result, items = aggr.Get()
 		output.Report = report
 	}
 
-	for _, v := range result {
-		output.Result = append(output.Result, v)
-	}
-
+	output.Result = append(output.Result, result)
+	output.Result = append(output.Result, items)
 	err = context.SetOutputObject(output)
 	if err != nil {
 		return false, err

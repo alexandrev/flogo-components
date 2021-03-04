@@ -5,6 +5,7 @@ import "sync"
 type BlockAverage struct {
 	windowSize   int
 	values       [][]float64
+	items        []string
 	operations   []string
 	nextValueIdx int
 	mutex        *sync.Mutex
@@ -14,21 +15,22 @@ func init() {
 
 }
 
-func (ba *BlockAverage) Get() (bool, []float64) {
+func (ba *BlockAverage) Get() (bool, []float64, []string) {
 
 	if len(ba.operations) >= 1 {
-		return true, ba.average()
+		return true, ba.average(), ba.items
 	}
-	return false, make([]float64, 1)
+	return false, make([]float64, 1), ba.items
 }
 
-func (ba *BlockAverage) Add(operation []string, value []float64) (bool, []float64) {
+func (ba *BlockAverage) Add(operation []string, items []string, value []float64) (bool, []float64) {
 
 	ba.mutex.Lock()
 	defer ba.mutex.Unlock()
 
 	ba.values[ba.nextValueIdx] = value
 	ba.operations = operation
+	ba.items = items
 
 	ba.nextValueIdx = ba.nextValueIdx + 1
 

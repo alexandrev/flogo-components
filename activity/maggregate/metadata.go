@@ -8,6 +8,7 @@ type Settings struct {
 type Input struct {
 	Function string        `md:"function"`
 	Value    []interface{} `md:"value"`
+	Items    []interface{} `md:"items"`
 	Key      string        `md:"key"`
 }
 
@@ -24,6 +25,12 @@ func (i *Input) FromMap(values map[string]interface{}) error {
 		return err
 	}
 	i.Value = params
+
+	items, err := coerce.ToArray(values["items"])
+	if err != nil {
+		return err
+	}
+	i.Items = items
 
 	function, err := coerce.ToString(values["function"])
 	if err != nil {
@@ -44,6 +51,7 @@ func (i *Input) FromMap(values map[string]interface{}) error {
 func (i *Input) ToMap() map[string]interface{} {
 	return map[string]interface{}{
 		"value":    i.Value,
+		"items":    i.Items,
 		"key":      i.Key,
 		"function": i.Function,
 	}

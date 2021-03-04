@@ -18,6 +18,10 @@
       "type": "array"      
     },
     {
+      "name": "items",
+      "type": "array"      
+    },
+    {
       "name": "key",
       "type": "string"
     }

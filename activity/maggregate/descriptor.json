@@ -1,0 +1,35 @@
+{
+  "name": "alexandrev-maggregator",
+  "type": "flogo:activity",
+  "ref": "github.com/alexandrev/flogo-components/activity/maggregate",
+  "version": "0.0.1",
+  "title": "MultiAggregate ",
+  "description": "Multi-value Key based Aggregator Activity Without Emit Automatically",
+  "homepage": "https://github.com/alexandrev/flogo-components/tree/master/activity/maggregate",
+  "input":[
+    {
+      "name": "function",
+      "type": "string",
+      "required": true,
+      "allowed" : ["set", "get","list"]
+    },
+    {
+      "name": "value",
+      "type": "array"      
+    },
+    {
+      "name": "key",
+      "type": "string"
+    }
+  ],
+  "output": [
+    {
+      "name": "result",
+      "type": "array"
+    },
+    {
+      "name": "report",
+      "type": "boolean"
+    }
+  ]
+}

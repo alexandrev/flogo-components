@@ -59,6 +59,8 @@ func (i *Input) ToMap() map[string]interface{} {
 
 // ToMap converts the struct Input into a map
 func (o *Output) ToMap() map[string]interface{} {
+	println(o.Result)
+	println(o.Report)
 	return map[string]interface{}{
 		"result": o.Result,
 		"report": o.Report,
@@ -67,8 +69,9 @@ func (o *Output) ToMap() map[string]interface{} {
 
 // FromMap converts the values from a map into the struct Input
 func (o *Output) FromMap(values map[string]interface{}) error {
-
 	o.Result = values["result"].([]interface{})
 	o.Report = values["report"].(bool)
+	println(o.Result)
+	println(o.Report)
 	return nil
 }

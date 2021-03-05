@@ -28,7 +28,7 @@ func (ba *BlockAverage) Add(operation []string, items []string, value []float64)
 	ba.mutex.Lock()
 	defer ba.mutex.Unlock()
 
-	ba.values[ba.nextValueIdx] = value
+	ba.values = append(ba.values, value)
 	ba.operations = operation
 	ba.items = items
 
@@ -72,6 +72,6 @@ func (ba *BlockAverage) average() []float64 {
 
 func NewBlockAverage() *BlockAverage {
 	return &BlockAverage{
-		values: make([][]float64, 1),
+		values: make([][]float64, 0),
 		mutex:  &sync.Mutex{}}
 }

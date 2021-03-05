@@ -74,6 +74,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 	operation := input.Function
 	println(operation)
 	if operation == "list" {
+		println(len(a.aggregators))
 		for k := range a.aggregators {
 			println(k)
 			output.Result = append(output.Result, k)

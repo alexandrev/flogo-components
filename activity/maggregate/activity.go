@@ -72,9 +72,10 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 	}
 	dataKey = dataKey + tsKey
 	operation := input.Function
-
+	println(operation)
 	if operation == "list" {
 		for k := range a.aggregators {
+			println(k)
 			output.Result = append(output.Result, k)
 		}
 		output.Report = true
@@ -86,7 +87,7 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 	}
 
 	aggregatorKey := context.ActivityHost().Name() + ":" + context.Name() + ":" + dataKey
-
+	println(aggregatorKey)
 	a.mutex.RLock()
 	//get aggregator for activity, assumes flow & task names are unique
 	aggr, ok := a.aggregators[aggregatorKey]

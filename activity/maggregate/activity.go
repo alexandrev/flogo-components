@@ -120,10 +120,10 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 		inputValuesIndex := inputValues[i].(map[string]interface{})
 		operations[i] = inputValuesIndex["operation"].(string)
 		values[i], ok = inputValuesIndex["value"].(float64)
-		items[i], ok = inputValuesIndex["items"].(string)
 		if !ok {
 			values[i] = float64(inputValuesIndex["value"].(int))
 		}
+		items[i], ok = inputValuesIndex["items"].(string)
 
 	}
 	var result []float64

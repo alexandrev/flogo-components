@@ -73,8 +73,8 @@ func (a *Activity) Eval(context activity.Context) (done bool, err error) {
 	dataKey = dataKey + tsKey
 	operation := input.Function
 	println(operation)
+	println(len(a.aggregators))
 	if operation == "list" {
-		println(len(a.aggregators))
 		for k := range a.aggregators {
 			println(k)
 			output.Result = append(output.Result, k)

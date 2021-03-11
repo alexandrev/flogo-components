@@ -96,15 +96,6 @@ type Trigger struct {
 
 func (t *Trigger) Initialize(ctx trigger.InitContext) error {
 
-	c, err := NewWebSocketConnection(t.settings.Url)
-
-	if err != nil {
-		ctx.Logger().Error(err)
-		return err
-	}
-
-	t.Connection = c
-
 	for _, handler := range ctx.GetHandlers() {
 		t.Handlers = append(t.Handlers, handler)
 	}
@@ -136,126 +127,141 @@ func (t *Trigger) startHandlers() error {
 
 func (t *Trigger) websocketHandler() {
 
-	conn := t.Connection.conn
+	retries := 3
+	attempt := 0
+	for attempt < retries {
+		log.Debug("Starting connection attempt: %d of %d ", attempt, retries)
+		c, err := NewWebSocketConnection(t.settings.Url)
 
-	done := make(chan struct{})
-	interrupt := make(chan os.Signal, 1)
-	signal.Notify(interrupt, os.Interrupt)
-	ticker := time.NewTicker(time.Second)
-	defer ticker.Stop()
+		if err != nil {
+			log.Error(err)
+		}
 
-	go func() {
-		defer conn.Close()
-		defer close(done)
-		for {
-			log.Debug("event processing cycle starting")
-			_, message, err := conn.ReadMessage()
-			if err != nil {
-				log.Error("read:", err)
-				return
-			}
+		t.Connection = c
+		conn := t.Connection.conn
 
-			log.Debug("received message from websocket")
+		done := make(chan struct{})
+		interrupt := make(chan os.Signal, 1)
+		signal.Notify(interrupt, os.Interrupt)
+		ticker := time.NewTicker(time.Second)
+		defer ticker.Stop()
 
-			var s = string(message)
+		go func() {
+			defer conn.Close()
+			defer close(done)
 
-			if strings.HasPrefix(s, "Response To") {
-				log.Debug("acknowledgement received")
-			} else {
-
-				log.Debug(s)
-
-				var eclsMessage Message
-
-				err := json.Unmarshal([]byte(s), &eclsMessage)
-
-				eclsMessage.flatten()
-
-				if err == nil {
-
-					log.Debug("event received")
-
-					trgData := make(map[string]interface{})
-					trgData["api_key"] = eclsMessage.Data[0].APIKey
-					trgData["api_method_name"] = eclsMessage.Data[0].APIMethodName
-					trgData["bytes"] = eclsMessage.Data[0].Bytes
-					trgData["cache_hit"] = eclsMessage.Data[0].CacheHit
-					trgData["client_transfer_time"] = eclsMessage.Data[0].ClientTransferTime
-					trgData["connect_time"] = eclsMessage.Data[0].ConnectTime
-					trgData["endpoint_name"] = eclsMessage.Data[0].EndpointName
-					trgData["http_method"] = eclsMessage.Data[0].HTTPMethod
-					trgData["http_status_code"] = eclsMessage.Data[0].HTTPStatusCode
-					trgData["http_version"] = eclsMessage.Data[0].HTTPVersion
-					trgData["oauth_access_token"] = eclsMessage.Data[0].OauthAccessToken
-					trgData["package_name"] = eclsMessage.Data[0].PackageName
-					trgData["package_uuid"] = eclsMessage.Data[0].PackageUUID
-					trgData["plan_name"] = eclsMessage.Data[0].PlanName
-					trgData["plan_uuid"] = eclsMessage.Data[0].PlanUUID
-					trgData["pre_transfer_time"] = eclsMessage.Data[0].PreTransferTime
-					trgData["qps_throttle_value"] = eclsMessage.Data[0].QPSThrottleValue
-					trgData["quota_value"] = eclsMessage.Data[0].QuotaValue
-					trgData["referrer"] = eclsMessage.Data[0].Referrer
-					trgData["remote_total_time"] = eclsMessage.Data[0].RemoteTotalTime
-					trgData["request_host_name"] = eclsMessage.Data[0].RequestHostName
-					trgData["request_id"] = eclsMessage.Data[0].RequestID
-					trgData["request_time"] = eclsMessage.Data[0].RequestTime
-					trgData["request_uuid"] = eclsMessage.Data[0].RequestUUID
-					trgData["response_string"] = eclsMessage.Data[0].ResponseString
-					trgData["service_definition_endpoint_uuid"] = eclsMessage.Data[0].ServiceDefinitionEndpointUUID
-					trgData["service_id"] = eclsMessage.Data[0].ServiceID
-					trgData["service_name"] = eclsMessage.Data[0].ServiceName
-					trgData["src_ip"] = eclsMessage.Data[0].SrcIP
-					trgData["ssl_enabled"] = eclsMessage.Data[0].SslEnabled
-					trgData["total_request_exec_time"] = eclsMessage.Data[0].TotalRequestExecTime
-					trgData["traffic_manager"] = eclsMessage.Data[0].TrafficManager
-					trgData["traffic_manager_error_code"] = eclsMessage.Data[0].TrafficManagerErrorCode
-					trgData["uri"] = eclsMessage.Data[0].URI
-					trgData["user_agent"] = eclsMessage.Data[0].UserAgent
-					trgData["log_type"] = eclsMessage.Data[0].LogType
-					trgData["ingestion_time"] = eclsMessage.Data[0].IngestionTime
-					trgData["asCSV"] = eclsMessage.flatten()
-					//trgData["asObject"] = s
-
-					for _, handler := range t.Handlers {
-						results, err := handler.Handle(context.Background(), trgData)
-						if err != nil {
-							log.Errorf("Error starting action: %v", err)
-						}
-						log.Debugf("Ran Handler: [%s]", handler)
-						log.Debugf("Results [%v]", results)
-					}
-				} else {
-					log.Errorf("Unable to unmarshal ECLS event: %v", err)
+			for {
+				log.Debug("event processing cycle starting")
+				_, message, err := conn.ReadMessage()
+				if err != nil {
+					log.Error("read:", err)
+					break
 				}
 
-			}
-			log.Debug("event processing cycle completed")
-		}
-	}()
+				log.Debug("received message from websocket")
+				attempt = 0
 
-	for {
-		select {
-		case t := <-ticker.C:
-			err := conn.WriteMessage(websocket.TextMessage, []byte(t.String()))
-			if err != nil {
-				log.Error("write:", err)
-				return
+				var s = string(message)
+
+				if strings.HasPrefix(s, "Response To") {
+					log.Debug("acknowledgement received")
+				} else {
+
+					log.Debug(s)
+
+					var eclsMessage Message
+
+					err := json.Unmarshal([]byte(s), &eclsMessage)
+
+					eclsMessage.flatten()
+
+					if err == nil {
+
+						log.Debug("event received")
+
+						trgData := make(map[string]interface{})
+						trgData["api_key"] = eclsMessage.Data[0].APIKey
+						trgData["api_method_name"] = eclsMessage.Data[0].APIMethodName
+						trgData["bytes"] = eclsMessage.Data[0].Bytes
+						trgData["cache_hit"] = eclsMessage.Data[0].CacheHit
+						trgData["client_transfer_time"] = eclsMessage.Data[0].ClientTransferTime
+						trgData["connect_time"] = eclsMessage.Data[0].ConnectTime
+						trgData["endpoint_name"] = eclsMessage.Data[0].EndpointName
+						trgData["http_method"] = eclsMessage.Data[0].HTTPMethod
+						trgData["http_status_code"] = eclsMessage.Data[0].HTTPStatusCode
+						trgData["http_version"] = eclsMessage.Data[0].HTTPVersion
+						trgData["oauth_access_token"] = eclsMessage.Data[0].OauthAccessToken
+						trgData["package_name"] = eclsMessage.Data[0].PackageName
+						trgData["package_uuid"] = eclsMessage.Data[0].PackageUUID
+						trgData["plan_name"] = eclsMessage.Data[0].PlanName
+						trgData["plan_uuid"] = eclsMessage.Data[0].PlanUUID
+						trgData["pre_transfer_time"] = eclsMessage.Data[0].PreTransferTime
+						trgData["qps_throttle_value"] = eclsMessage.Data[0].QPSThrottleValue
+						trgData["quota_value"] = eclsMessage.Data[0].QuotaValue
+						trgData["referrer"] = eclsMessage.Data[0].Referrer
+						trgData["remote_total_time"] = eclsMessage.Data[0].RemoteTotalTime
+						trgData["request_host_name"] = eclsMessage.Data[0].RequestHostName
+						trgData["request_id"] = eclsMessage.Data[0].RequestID
+						trgData["request_time"] = eclsMessage.Data[0].RequestTime
+						trgData["request_uuid"] = eclsMessage.Data[0].RequestUUID
+						trgData["response_string"] = eclsMessage.Data[0].ResponseString
+						trgData["service_definition_endpoint_uuid"] = eclsMessage.Data[0].ServiceDefinitionEndpointUUID
+						trgData["service_id"] = eclsMessage.Data[0].ServiceID
+						trgData["service_name"] = eclsMessage.Data[0].ServiceName
+						trgData["src_ip"] = eclsMessage.Data[0].SrcIP
+						trgData["ssl_enabled"] = eclsMessage.Data[0].SslEnabled
+						trgData["total_request_exec_time"] = eclsMessage.Data[0].TotalRequestExecTime
+						trgData["traffic_manager"] = eclsMessage.Data[0].TrafficManager
+						trgData["traffic_manager_error_code"] = eclsMessage.Data[0].TrafficManagerErrorCode
+						trgData["uri"] = eclsMessage.Data[0].URI
+						trgData["user_agent"] = eclsMessage.Data[0].UserAgent
+						trgData["log_type"] = eclsMessage.Data[0].LogType
+						trgData["ingestion_time"] = eclsMessage.Data[0].IngestionTime
+						trgData["asCSV"] = eclsMessage.flatten()
+						//trgData["asObject"] = s
+
+						for _, handler := range t.Handlers {
+							results, err := handler.Handle(context.Background(), trgData)
+							if err != nil {
+								log.Errorf("Error starting action: %v", err)
+							}
+							log.Debugf("Ran Handler: [%s]", handler)
+							log.Debugf("Results [%v]", results)
+						}
+					} else {
+						log.Errorf("Unable to unmarshal ECLS event: %v", err)
+					}
+
+				}
+				log.Debug("event processing cycle completed")
 			}
-		case <-interrupt:
-			log.Debug("interrupt")
-			// To cleanly close a connection, a client should send a close
-			// frame and wait for the server to close the connection.
-			err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-			if err != nil {
-				log.Error("write close:", err)
-				return
-			}
+
+		}()
+
+		for {
 			select {
-			case <-done:
-			case <-time.After(time.Second):
+			case t := <-ticker.C:
+				err := conn.WriteMessage(websocket.TextMessage, []byte(t.String()))
+				if err != nil {
+					log.Error("write:", err)
+					return
+				}
+			case <-interrupt:
+				log.Debug("interrupt")
+				// To cleanly close a connection, a client should send a close
+				// frame and wait for the server to close the connection.
+				err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+				if err != nil {
+					log.Error("write close:", err)
+					return
+				}
+				select {
+				case <-done:
+				case <-time.After(time.Second):
+				}
+				_ = conn.Close()
+				return
 			}
-			_ = conn.Close()
-			return
 		}
 	}
 

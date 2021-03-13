@@ -120,7 +120,7 @@ func (t *Trigger) Stop() error {
 func (t *Trigger) startHandlers() error {
 
 	// start the trigger
-	log.Debug("Start")
+	log.Debug("Start Trigger With Retries")
 
 	go t.websocketHandler()
 

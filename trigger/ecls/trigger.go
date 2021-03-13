@@ -110,7 +110,9 @@ func (t *Trigger) Start() error {
 
 // Stop implements util.Managed.Stop
 func (t *Trigger) Stop() error {
-	_ = t.Connection.Stop()
+	if t.Connection != nil {
+		_ = t.Connection.Stop()
+	}
 
 	return nil
 }
@@ -130,7 +132,7 @@ func (t *Trigger) websocketHandler() {
 	retries := 3
 	attempt := 0
 	for attempt < retries {
-		log.Debug("Starting connection attempt: %d of %d ", attempt, retries)
+		log.Debug("Starting connection attempt: %i ", attempt)
 		c, err := NewWebSocketConnection(t.settings.Url)
 
 		if err != nil {

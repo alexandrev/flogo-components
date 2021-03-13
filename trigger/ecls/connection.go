@@ -4,9 +4,10 @@ import (
 	"crypto/tls"
 	"fmt"
 
+	"net/http"
 	"net/url"
 	"strings"
-	"net/http"
+
 	"github.com/gorilla/websocket"
 	"github.com/prometheus/common/log"
 )
